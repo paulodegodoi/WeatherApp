@@ -4,15 +4,33 @@ import { theme } from "../theme"
 
 import { MagnifyingGlassIcon } from "react-native-heroicons/outline"
 import { MapPinIcon } from "react-native-heroicons/solid"
-import { useState } from "react"
+import { useCallback, useState } from "react"
+
+import { debounce } from "lodash"
+import { fetchLocations } from "../api/weather"
+import { searchApiObject } from "../types"
 
 export default function HomeScreen() {
 	const [showSearch, setShowSearch] = useState(false)
-	const [locations, setLocations] = useState([1, 2, 3])
+	const [locations, setLocations] = useState<searchApiObject[]>([])
 
 	const handleLocation = (loc: number) => {
 		console.log("location", loc)
 	}
+
+	const handleSearch = (value: string) => {
+		// fetch locations
+		if (value.length > 0) {
+			const searchValue = {
+				cityName: value,
+			}
+			fetchLocations(searchValue).then((data) => {
+				setLocations(data)
+			})
+		}
+	}
+
+	const handleTextDebounce = useCallback(debounce(handleSearch, 1200), [])
 
 	return (
 		<View className="flex-1 relative">
@@ -31,6 +49,7 @@ export default function HomeScreen() {
 					>
 						{showSearch ? (
 							<TextInput
+								onChangeText={handleTextDebounce}
 								placeholder="Search city"
 								placeholderTextColor={"lightgray"}
 								className="pl-6 h-10 flex-1 text-base text-white"
@@ -46,13 +65,13 @@ export default function HomeScreen() {
 					</View>
 					{locations.length > 0 && showSearch ? (
 						<View className="absolute w-full bg-gray-300 top-16 rounded-3xl">
-							{locations.map((loc, index) => {
+							{locations.map((l, index) => {
 								let showBorder = index + 1 != locations.length
 								let borderClass = showBorder ? "border-b-2 border-b-gray-400" : ""
 								return (
 									<TouchableOpacity
-										onPress={() => handleLocation(loc)}
-										key={index}
+										onPress={() => handleLocation(index)}
+										key={l.name}
 										className={
 											"flex-row items-center border-0 p-3 px-4 mb-1 " +
 											borderClass
@@ -60,7 +79,7 @@ export default function HomeScreen() {
 									>
 										<MapPinIcon size={20} color="gray" />
 										<Text className="text-black text-lg ml-2">
-											London, United Kingdom
+											{l.name}, {l.country}
 										</Text>
 									</TouchableOpacity>
 								)
