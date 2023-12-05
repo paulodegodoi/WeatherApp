@@ -1,14 +1,11 @@
 import axios from "axios"
 import { apiKey } from "../constants"
-
-type ApiParams = {
-	cityName: string
-}
+import { ApiParams } from "../types"
 
 const forecastEndpoint = (params: ApiParams) =>
-	`http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${params.cityName}&aqi=no`
+	`http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${params.cityName}&days=${params.days}&aqi=no&alerts=no`
 
-const searchEndpoint = (params) =>
+const searchEndpoint = (params: ApiParams) =>
 	`http://api.weatherapi.com/v1/search.json?key=${apiKey}&q=${params.cityName}`
 
 const apiCall = async (endpoint: string) => {
@@ -27,6 +24,7 @@ const apiCall = async (endpoint: string) => {
 }
 
 export const fetchWeatherForecast = (params: ApiParams) => {
+	console.log(forecastEndpoint(params))
 	return apiCall(forecastEndpoint(params))
 }
 
